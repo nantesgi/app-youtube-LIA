@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:youtube_api/youtube_api.dart';
+import 'package:html_unescape/html_unescape.dart';
 
 void main() {
   runApp(const App());
@@ -10,7 +11,7 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'App LIA',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -28,13 +29,13 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
-  bool typing = false;
+  bool searchOpened = false;
   String header = "Pelo que você está procurando?";
   static String api_key = "AIzaSyDiiwePwEEhi6E3Rv77iar2gUgCs0EybL0";
 
   List<YouTubeVideo> results = [];
 
-  YoutubeAPI yt = YoutubeAPI(api_key);
+  YoutubeAPI yt = YoutubeAPI(api_key, maxResults: 50);
 
   @override
   void initState() {
@@ -43,16 +44,12 @@ class HomePageState extends State<HomePage> {
   }
 
   callApi() async {
-    try {
-      results = await yt.search(
-        TextBox.ytsearch.text,
-        order: 'relevance',
-        videoDuration: 'any',
-      );
-      setState(() {});
-    } catch (e) {
-      print(e);
-    }
+    results = await yt.search(
+      TextBox.ytsearch.text,
+      order: 'relevance',
+      videoDuration: 'any'
+    );
+    setState(() {});
   }
 
   @override
@@ -62,18 +59,18 @@ class HomePageState extends State<HomePage> {
       appBar: AppBar(
         toolbarHeight: 80,
         backgroundColor: Colors.grey[900],
-        title: typing ? TextBox() : Text(header),
+        title: searchOpened ? TextBox() : Text(header),
         leading: IconButton(
-          icon: Icon(typing ? Icons.done : Icons.search),
+          icon: Icon(searchOpened ? Icons.done : Icons.search),
           onPressed: () {
             setState(() {
-              typing = !typing;
+              searchOpened = !searchOpened;
             });
-            if (typing == false) {
+            if (searchOpened == false) {
               callApi();
             }
             if (TextBox.ytsearch.text == null) {
-              header = 'Pelo que você está procurando?';
+              header = 'Pelo você está buscando?';
             } else {
               header = TextBox.ytsearch.text;
             }
@@ -108,7 +105,7 @@ class HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      video.title,
+                      HtmlUnescape().convert(video.title),
                       softWrap: true,
                       style: TextStyle(fontSize: 18.0, color: Colors.grey[500]),
                       maxLines: 2,
@@ -136,8 +133,8 @@ class HomePageState extends State<HomePage> {
 }
 
 class TextBox extends StatelessWidget {
+  const TextBox({super.key});
   static TextEditingController ytsearch = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -146,11 +143,13 @@ class TextBox extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.only(right: 50),
         child: TextField(
-          decoration:
-              InputDecoration(border: InputBorder.none, hintText: 'Busque'),
-          controller: ytsearch,
-          style: TextStyle(color: Colors.white)
-        ),
+            decoration: InputDecoration(
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.only(left: 15),
+                hintText: 'Pesquisar',
+                hintStyle: TextStyle(color: Colors.white)),
+            controller: ytsearch,
+            style: TextStyle(color: Colors.white)),
       ),
     );
   }
